@@ -1,0 +1,103 @@
+--Give the following queries in SQL: (based on table nikovits.emp)
+EMP (empno, ename, job, mgr, hiredate, sal, comm, deptno)	   
+----------------------------------------------------------
+7369	SMITH	CLERK     7902	1980-12-17   800        20
+7499	ALLEN	SALESMAN  7698	1981-02-20  1600   300  30
+7521	WARD	SALESMAN  7698	1981-02-22  1250   500  30
+7566	JONES	MANAGER   7839	1981-04-02  2975        20
+7654	MARTIN	SALESMAN  7698	1981-09-28  1250  1400  30
+7698	BLAKE	MANAGER   7839	1981-05-01  4250        30
+7782	CLARK	MANAGER   7839	1981-06-09  2450   200  10
+7788	SCOTT	ANALYST   7566	1982-12-09  3000        20
+7839	KING	PRESIDENT       1981-11-17  5000        10
+7844	TURNER	SALESMAN  7698	1981-09-08  1500    10  30
+7876	ADAMS	CLERK     7788	1983-01-12  1100        20
+7900	JAMES	CLERK     7698	1981-12-03   950        30
+7902	FORD	ANALYST   7566	1981-12-03  3000   700  20
+7934	MILLER	CLERK     7782	1982-01-23  1300   600  10
+----------------------------------
+drop emp;
+create table emp as
+select * from  nikovits.emp;
+
+select * from emp;
+
+
+--1.  List the employees whose salary is greater than 2800.
+select EMPNO,ENAME 
+from emp
+where sal >2800;
+
+--2.  List the employees working on department 10 or 20.
+select EMPNO,ENAME
+from emp
+where DEPTNO = 10 or DEPTNO = 20;
+
+--3.  List the employees whose commission is greater than 600.
+select EMPNO,ENAME
+from emp
+where COMM > 600;
+
+--4.  List the employees whose commission is NOT greater than 600.
+select EMPNO,ENAME
+from emp
+where COMM<= 600;
+--where  not COMM > 600;
+
+--5.  List the employees whose commission is not known (that is NULL).
+select EMPNO,ENAME
+from emp
+where COMM is NULL;
+
+--6.  List the jobs of the employees (with/without duplication).
+select  JOB
+from emp;
+
+select  distinct JOB
+from emp;
+
+--7.  Give the name and double salary of employees working on department 10.
+select  ENAME , 2*SAL AS DOUBLE
+from emp
+where DEPTNO = 10;
+
+--8.  List the employees whose hiredate is greater than 1982.01.01.
+select ENAME
+from emp
+where HIREDATE > DATE'1982-01-01';  
+
+--9.  List the employees who doesn't have a manager.
+select ENAME
+from emp
+where MGR is NULL;
+
+--10. List the employees whose name contains a letter 'A'.
+select ENAME
+from emp
+where ENAME  like '%A%';
+
+--11. List the employees whose name contains two letters 'L'.
+select ENAME
+from emp
+where ENAME  like '%L%L%';
+
+--12. List the employees whose salary is between 2000 and 3000.
+select ENAME
+from emp
+where SAL between 2000 and 3000;
+
+--13. List the name and salary of employees ordered by salary.
+select ENAME,SAL 
+from emp
+order by SAL;
+
+--14. List the name and salary of employees ordered by salary in descending order and 
+  --  within that order, ordered by name in ascending order.
+select ENAME,SAL 
+from emp
+order by SAL DESC, ENAME ASC;
+
+--15. List the employees whose manager is KING. (reading empno of KING from monitor)
+select L1.ENAME
+from emp L1,emp L2
+where L1.MGR = L2.EMPNO and L2.ENAME = 'KING';
