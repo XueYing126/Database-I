@@ -1,0 +1,199 @@
+ drop table likes;
+ create table likes as
+  select * from rudas.likes;
+  select * from likes;
+  
+/*
+CREATE TABLE LIKES (NAME varchar(14), FRUITS varchar(14));
+   
+   insert into LIKES values ('Piglet','apple');
+   insert into LIKES values ('Piglet','pear');
+   insert into LIKES values ('Piglet','raspberry');
+   insert into LIKES values ('Winnie','apple');
+   insert into LIKES values ('Winnie','pear');
+   insert into LIKES values ('Kanga','apple');
+   insert into LIKES values ('Tiger','apple');
+   insert into LIKES values ('Tiger','pear');
+
+commit;
+-- grant select on LIKES to public;
+*/
+ --Determine the relational algebraic expression which answers the following questions: 
+
+ 
+ --1. Which fruits does Winnie like?
+ select fruits
+ from likes
+ where name = 'Winnie';
+ 
+ --2. Which fruits doesn't Winnie like but someone else do?
+ select fruits
+ from likes
+ minus
+ ( select fruits
+ from likes
+ where name = 'Winnie');
+ 
+ --way2:
+ select distinct fruits
+ from likes
+ where fruits not in 
+ ( select fruits
+ from likes
+ where name = 'Winnie');
+ 
+ --3. Who likes apple?
+ select name
+ from likes
+ where fruits = 'apple';
+ 
+ --4. Who doesn't like apple but like something else?
+ select name from likes
+ minus
+ select name from likes
+ where fruits = 'apple';
+ 
+ --5. Who likes apple or pear?
+ select distinct name 
+ from likes
+ where fruits  = 'apple' or fruits = 'pear';
+ --or use  UNION
+ 
+ --6. Who likes both apple and pear?
+ --way 1:
+ select name
+ from likes 
+ where fruits = 'apple'
+ intersect
+ select name
+ from likes 
+ where fruits = 'pear';
+ 
+ --way 2:
+ select L1.name
+ from likes L1,likes L2
+ where L1.name = L2.name and L1.fruits = 'apple' and L2.fruits = 'pear';
+ 
+ --7. Who likes apple but doesn't like pear?
+ select name
+ from likes
+ where fruits = 'apple'
+ minus
+ select name
+ from likes
+ where fruits = 'pear';
+
+ --8. Who likes at least two different fruits?
+ --way 1:
+ select distinct l1.name
+ from likes l1, likes l2
+ where l1.name = l2.name and l1.fruits <> l2.fruits;
+ 
+ --way2:
+ select name
+ from likes
+ group by name
+ having count(fruits)>1;
+ 
+ --9. Who likes at least three different fruits?
+ --way 1:
+ select distinct l1.name
+ from likes l1, likes l2, likes l3
+ where l1.name = l2.name and l2.name = l3.name 
+ and l1.fruits <> l2.fruits and l1.fruits <> l3.fruits and l2.fruits <> l3.fruits;
+ 
+ --way2:
+ select name
+ from likes
+ group by name
+ having count(fruits)>2;
+
+--10. Who likes at most two different fruits?
+--way1:
+select name from likes
+minus
+(select distinct l1.name
+ from likes l1, likes l2, likes l3
+ where l1.name = l2.name and l2.name = l3.name 
+ and l1.fruits <> l2.fruits and l1.fruits <> l3.fruits and l2.fruits <> l3.fruits);
+
+--way2:
+ select name
+ from likes
+ group by name
+ having count(fruits)<=2;
+ 
+--11. Who likes exactly two different fruits?
+--way1:
+( select distinct l1.name
+ from likes l1, likes l2
+ where l1.name = l2.name and l1.fruits <> l2.fruits)
+minus
+(select distinct l1.name
+ from likes l1, likes l2, likes l3
+ where l1.name = l2.name and l2.name = l3.name 
+ and l1.fruits <> l2.fruits and l1.fruits <> l3.fruits and l2.fruits <> l3.fruits);
+
+--way2:
+ select name
+ from likes
+ group by name
+ having count(fruits)=2;
+
+--12. Who likes every fruits?***
+--way1:
+select  name from likes
+minus
+(
+select name 
+from (
+select l1.name, l2.fruits
+from (select distinct name from likes) l1, (select distinct fruits from likes) l2
+minus
+select * from likes
+)
+);
+
+--way2:
+/*
+select name
+from likes
+group by name
+having count(fruits) = count(
+select distinct fruits from likes
+);*/
+--13. Who likes at least those fruits that Winnie likes?
+create table p1 as 
+(
+select * from 
+(select name from likes), 
+(select fruits from likes where name  = 'Winnie')
+);
+create table p2 as
+select name from likes
+minus
+select name from 
+(
+select * from p1
+minus
+select * from likes
+);
+select * from p2;
+
+--14. Who likes at most those fruits that Winnie likes?
+create table p3 as
+select name from likes
+minus
+select name from 
+(
+select * from likes
+minus
+select * from p1
+);
+select *  from p3;
+
+--15. Who likes exactly those fruits that Winnie likes? 
+select * from p2
+intersect
+select * from p3;
+select * from likes;
