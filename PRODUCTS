@@ -1,0 +1,104 @@
+drop table laptop;
+
+create table laptop as
+select * from rudas.laptop;
+
+select * from laptop;
+select * from printer;
+select * from products;
+select * from pc;
+
+--The database scema consisits of four relations, whose scemas are:
+-- Product(maker, model, type)
+ --(model, speed, ram, hd, price)
+-- Laptop(model, speed, ram, hd, screen, price)
+ --Printer(model, color, type, price)
+
+
+--a) What PC models have a speed of at least 3.00 GHz?
+select model
+from pc
+where speed >= 3.00;
+
+--b) Which manufacturers make laptops with a hard disk (hd) of at least 100 GB?
+select maker
+from laptop natural join products
+where laptop.hd>=100;
+
+--c) Find the model number and price of products (of any type) made by manufacturer B.
+(select model, price
+from laptop natural join products
+where maker = 'B')
+Union
+(select model, price
+from products natural join printer
+where maker = 'B')
+Union
+(select model, price
+from products natural join pc
+where maker = 'B');
+
+--d) Find the model numbers of all color laser printers.
+select model
+from printer
+where color = 'yes' and type  = 'laser';
+
+--e) Find those manufacturers that sell Laptops, but not PC's.
+select maker
+from products natural join laptop
+minus
+select maker
+from products natural join pc;
+
+--!f) Find those hard-disk sizes that occur in two or more PC's.
+select distinct p1.hd
+from pc p1, pc p2
+where p1.hd = p2.hd and p1.model <> p2.model;
+
+--!g) Find those pairs of PC models that have both the same cpu speed and RAM, the size of
+--memory. A pair should be listed only once, e.g., list (I,j) but not (j,i).
+select p1.model, p2.model
+from pc p1, pc p2
+where p1.model < p2.model and p1.speed = p2.speed and p1.ram = p2.ram;
+
+--!!h) Find those manufacturers of at least two different computers (PC's or laptops) with
+--speeds of at least 2.80 GHz.
+create table a1 as
+select model, maker
+from products natural join pc
+where speed >=2.80
+union
+select model, maker
+from products natural join laptop
+where speed >=2.80;
+select * from A1;
+
+select distinct A11.maker
+from A1 A11, A1 A12
+where A11.model <> A12.model and A11.maker = A12.maker;
+
+--!!i) Find the manufacturers of the computer (PC or laptop) with the highest available speed.
+create table a2 as
+(select model, maker,speed
+from products natural join pc
+union
+select model, maker,speed
+from products natural join laptop);
+select * from a2;
+
+select distinct maker from a2
+where speed =
+(select max(speed) from a2 )
+;
+
+--!!j) Find the manufacturers of PC's with at least three different cpu speeds.
+select maker
+from pc natural join products 
+group by maker
+having count(distinct speed) >=3;
+
+--!!k) Find the manufacturers who sell exactly three different models of PC. 
+select maker
+from pc natural join products
+group by maker
+having count(model)=3;
