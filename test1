@@ -1,0 +1,63 @@
+select * from emp;
+select * from dept;
+select * from sal_cat;
+
+--ex5:
+drop table t1;
+create table t1 as
+select job
+from emp
+group by job
+having count(empno)>=3;
+
+select job,avg(sal) avg_salary
+from t1 natural join emp
+group by job;
+
+--ex6:
+/*
+select job , count(distinct category), count(distinct loc)
+from (emp join sal_cat on emp.sal < sal_cat.highest_sal and emp.sal > sal_cat.lowest_sal)  natural join dept 
+group by job;
+having count(distinct category)<=2 and count(distinct loc) = 1;
+*/
+create table x1 as
+select *
+from (emp join sal_cat on emp.sal < sal_cat.highest_sal and emp.sal > sal_cat.lowest_sal)  natural join dept;
+
+select job , count(distinct category),count(distinct loc)
+from x1
+group by job
+having count(distinct category)<=2 and count(distinct loc) = 1;
+
+
+--ex7:
+drop table t3;
+create table t3 as
+select empno from emp
+minus
+select mgr empno
+from emp;
+select category
+from ((emp natural join t3) join sal_cat on emp.sal < sal_cat.highest_sal and emp.sal > sal_cat.lowest_sal)
+group by category
+having count(empno)>=3;
+
+--ex8:
+drop table t5;
+create table t5 as
+select deptno,dname
+from emp natural join  dept
+group by deptno , dname
+having count(empno)>=4;
+select * from t5;
+
+drop table t4;
+create table t4 as
+select * 
+from (select mgr empno from emp) natural join emp; 
+select * from t4;
+
+select dname,count(empno) cnt_mgr
+from t5  natural join t4
+group by dname;
