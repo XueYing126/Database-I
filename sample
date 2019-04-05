@@ -1,0 +1,50 @@
+--Exercise 5   (5 points)
+--Give the month names (January, February etc.) in which at least two 
+--employees started to work (hiredate shows the start of work), and 
+--give the number of such employees by month. 
+--(Month_name, Num_emps)
+
+SELECT to_char(hiredate, 'month') Month_name, count(empno) Num_emps
+FROM EMP
+GROUP BY to_char(hiredate, 'month')
+HAVING COUNT(EMPNO)>=2;
+
+--Exercise 6   (5 points)
+--Give the lower and higher bound of salary categories for which it is true 
+--that all the employees within this category have the same job. (lowest_sal, highest_sal)
+
+CREATE TABLE C1 AS
+SELECT category
+FROM EMP e JOIN SAL_CAT s ON e.SAL<s.HIGHEST_SAL and e.sal>s.LOWEST_SAL
+GROUP BY category
+HAVING COUNT(DISTINCT job)=1;
+
+SELECT lowest_sal, highest_sal
+FROM C1 NATURAL JOIN SAL_CAT;
+
+--Exercise 7   (5 points)
+--List the jobs where this job occurs only on one department, and give the name 
+--of this department too. (job, dname)
+
+CREATE TABLE J1 AS
+SELECT job
+FROM EMP
+GROUP BY job
+HAVING COUNT(DISTINCT deptno)=1;
+
+SELECT DISTINCT job, dname
+FROM (J1 NATURAL JOIN EMP) NATURAL JOIN DEPT;
+
+--Exercise 8   (5 points)
+--Give the salary and salary category of the employee who has the lowest 
+--salary among the employees having a subordinate (emloyees who are managers
+--of other emloyees). (sal, category)
+
+CREATE TABLE MINSAL AS
+SELECT MIN(SAL) sal
+FROM EMP
+WHERE empno in (SELECT mgr FROM EMP);
+
+SELECT sal, category
+FROM MINSAL, SAL_CAT
+WHERE sal<highest_sal and sal>lowest_sal;
