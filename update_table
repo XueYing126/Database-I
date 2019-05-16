@@ -1,0 +1,71 @@
+--DML exercises
+DROP TABLE emp2;
+DROP TABLE sal_cat2;
+DROP TABLE dept2;
+CREATE TABLE emp2 AS SELECT * FROM emp;
+CREATE TABLE sal_cat2 AS SELECT * FROM sal_cat;
+CREATE TABLE dept2 AS SELECT * FROM dept;
+
+
+select * from emp2;
+select * from dept2;
+select * from sal_cat2;
+-- Delete the employees whose commission is null.
+delete from emp2 where comm is null;
+-- Delete the employees whose department's location is DALLAS.
+delete from emp2 where deptno in (
+select deptno
+from dept2
+where loc = 'DALLAS');
+
+-- Delete the employees whose salary is less than the average salary on his department.
+delete from emp2 e1 
+where sal< (
+    select avg(sal)
+    from emp2 e2
+    group by deptno
+    having e2.deptno = e1.deptno
+);
+
+-- Delete the departments which has at least two employees with salary category 2.
+delete from emp2
+where deptno in (
+    select deptno
+    from emp2 e join sal_cat2 s on e.sal between s.lowest_sal and s.highest_sal
+    group by category,deptno
+    having category = 2 and count(empno)>=2
+);
+
+-- Insert a new employee with the following values:
+--empno=1, ename='Smith', deptno=10, hiredate=sysdate, salary=average salary in department 10.
+
+--   All the other columns should be NULL.
+--a) Insert the row with the 'VALUES' keyword
+
+insert into emp2(empno, ename, deptno, hiredate, sal)
+values (1, 'Smith', 10, sysdate, (select avg(sal) from emp2 where deptno=10));
+
+--b) Insert the row with a SELECT query without 'VALUES' keyword.
+
+insert into emp2(empno, ename, deptno, hiredate, sal)
+select 1, 'Smith', 10, sysdate, (select avg(sal) from emp2 where deptno=10) from dual;
+
+-- Increase the salary of the employees in department 20 with 20%.
+update emp2
+set sal = sal *2
+where deptno = 20;
+
+-- Increase the commission of all employees with the maximal commission.
+-- If an employee has NULL commission, treat it as 0.
+update emp2
+set comm = NVL(comm,0)+(select max(comm) from emp2);
+
+-- Modify the name of the employee with the lowest salary to 'Poor'.
+update emp2
+set ename = 'Poor'
+where sal = (select min(sal) from emp2);
+
+-- Increase the salary of those employees who has a subordinate. The increment is the minimal salary.
+update emp2
+set sal = sal + (select min(sal) from emp2)
+where empno in (select mgr from emp2);
