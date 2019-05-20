@@ -1,0 +1,125 @@
+DROP TABLE emp2;
+DROP TABLE sal_cat2;
+DROP TABLE dept2;
+CREATE TABLE emp2 AS SELECT * FROM emp;
+CREATE TABLE sal_cat2 AS SELECT * FROM sal_cat;
+CREATE TABLE dept2 AS SELECT * FROM dept;
+
+
+select * from emp2;
+select * from dept2;
+select * from sal_cat2;
+
+--1
+--select * from emp2 e1
+delete from emp2 e1 
+where sal = (
+    select min(sal)
+    from emp2 e2
+    group by deptno
+    having e2.deptno = e1.deptno
+) and e1.deptno in (
+    select deptno
+    from emp2
+    group by deptno
+    having avg(sal)>(
+    select avg(sal) from emp2
+    )  
+);
+
+--2
+create or replace function series(n INTEGER) return INTEGER is
+begin
+    if n=1 then
+        return 3;
+    end if;
+    if n=2 then
+        return 4;
+    end if;
+    
+    return series(n-1)*series(n-2) - 2*series(n-1);
+end;
+/
+select series(5) from dual;
+
+
+--3
+--update emp2
+--set comm = NVL(comm,0)+(select max(comm) from emp2);
+create or replace function f3(str VARCHAR) return INTEGER is
+    income integer;
+    cnt integer := 0;  
+    loca VARCHAR(10);
+begin
+    select (sal+NVL(comm,0)) into income
+    from emp2
+    where ename = str;
+
+    select loc into loca
+    from emp2 natural join dept2
+    where ename = str;
+
+    
+    select count(empno) into cnt
+    from emp2 natural join dept2
+    where (sal+NVL(comm,0)) < income
+    and loc = loca;
+    
+    return cnt;
+end;
+/
+select f3('ALLEN') from dual;
+
+
+--4:
+UPDATE EMP2
+set sal = 2*sal
+where deptno = 30;
+set serveroutput on;
+
+CREATE OR REPLACE PROCEDURE f4 IS 
+    CURSOR cur1 IS 
+        select ename
+        from emp2       
+        ;
+    rec cur1%ROWTYPE;
+    f_ename emp2.ename%TYPE;
+    cnt2 integer;
+    locat VARCHAR(10);
+    overal number;
+BEGIN
+ 
+    open cur1;
+    loop
+        fetch cur1 into rec;
+        exit when cur1%NOTFOUND;
+         f_ename := (rec.ename);
+         cnt2:=f3(f_ename);
+
+    dbms_output.put_line(rec.ename || ' : ' || cnt2);
+    end loop;
+    close cur1;
+END;
+/
+
+execute f4;
+
+
+
+--5:
+
+
+CREATE OR REPLACE PROCEDURE f5(X integer) IS
+    avg_sal number;
+begin
+    update emp2 e1
+    set sal = sal + X/100*(
+        select avg(sal)
+        from emp2 e2
+        where e2.deptno = e1.deptno
+    );
+
+   -- dbms_output.put_line('Avg sal:' || avg_sal);     
+end;
+/
+execute f5(2);
